@@ -15,3 +15,7 @@ settings_dict = dotenv_values('.env')
 TELEGRAM_BOT_TOKEN = settings_dict['TELEGRAM_BOT_TOKEN'] # 12345
 PROXY_AUTH = settings_dict['PROXY_AUTH'] # http://login:password@ip:port
 
+PROXIES = {
+    'https': PROXY_AUTH
+}
+

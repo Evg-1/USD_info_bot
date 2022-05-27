@@ -4,12 +4,9 @@ from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
 
-from scrap_binance_p2p import get_prices_and_spread_from_binance_p2p
-from scrap_alfa_bank import get_prices_and_spread_from_alfabank
-from scrap_tinkoff_bank import get_prices_and_spread_from_tinkoffbank
 import datetime
-from settings import TELEGRAM_BOT_TOKEN
-
+from business_logic import Usd
+from settings import TELEGRAM_BOT_TOKEN, PROXIES
 
 bot = Bot(token=TELEGRAM_BOT_TOKEN)
 dp = Dispatcher(bot)
@@ -17,9 +14,10 @@ dp = Dispatcher(bot)
 def get_log_head(msg):
     first_name = msg.from_user.first_name if msg.from_user.first_name is not None else ''
     last_name = msg.from_user.last_name if msg.from_user.last_name is not None else ''
+    full_name = f'{first_name} {last_name}'
     log_head = f'[{datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S")}] ' \
                f'user_id: {msg.from_user.id:11} ' \
-               f'name: {first_name + " " + last_name:25s}'
+               f'name: {full_name:25s}'
     return log_head
 
 @dp.message_handler(commands=['start'])
@@ -31,7 +29,7 @@ async def process_start_command(msg: types.Message):
                      'Я покажу актуальный\n'
                      '- курс покупки $ (USD)\n'
                      '- цену_покупки/цену_продажи\n'
-                     '- и \u0394 разницу между ними\n'
+                     '- и Δ разницу между ними\n'
                      'на <a href="https://p2p.binance.com/ru/trade/all-payments/USDT?fiat=RUB">binance p2p</a> через Tinkoff\n'
                      'в <a href="https://alfabank.ru/currency/">Alfa банке</a>\n'
                      'в <a href="https://www.tinkoff.ru/about/exchange/">Tinkoff банке</a>\n'
@@ -44,29 +42,31 @@ async def process_start_command(msg: types.Message):
 async def process_exchange_rate_button(msg: types.Message):
     print(f'{get_log_head(msg)} нажал кнопку "показать курс"')
 
+    usd = Usd()
+
     try:
-        price_buy_binance, price_sell_binance, spread_binance = get_prices_and_spread_from_binance_p2p()
-    except Exception as err:
-        print(f'{get_log_head(msg)} [ERROR] Something went wrong in get_prices_and_spread_from_binance_p2p() \n{err}')
+        usd.get_prices_and_spread_from_binance_p2p(proxies=None)
+    except Exception as exc:
+        print(f'{get_log_head(msg)} [ERROR] Something went wrong in get_prices_and_spread_from_binance_p2p() \n{exc}')
         binance_p2p_response = 'не удалось получить данные 😭'
     else:
-        binance_p2p_response = f'{price_buy_binance:.2f}/{price_sell_binance:.2f} \u0394{spread_binance:.2f}'
+        binance_p2p_response = f'{usd.price_buy_binance:.2f}/{usd.price_sell_binance:.2f} Δ{usd.spread_binance:.2f}'
 
     try:
-        price_buy_alfa, price_sell_alfa, spread_alfa = get_prices_and_spread_from_alfabank()
-    except Exception as err:
-        print(f'{get_log_head(msg)} [ERROR] Something went wrong in get_prices_and_spread_from_alfabank() \n{err}')
+        usd.get_prices_and_spread_from_alfabank(proxies=PROXIES)
+    except Exception as exc:
+        print(f'{get_log_head(msg)} [ERROR] Something went wrong in get_prices_and_spread_from_alfabank() \n{exc}')
         alfabank_response = 'не удалось получить данные 😭'
     else:
-        alfabank_response = f'{price_buy_alfa:.2f}/{price_sell_alfa:.2f} \u0394{spread_alfa:.2f}'
+        alfabank_response = f'{usd.price_buy_alfa:.2f}/{usd.price_sell_alfa:.2f} Δ{usd.spread_alfa:.2f}'
 
     try:
-        price_buy_tinkoff, price_sell_tinkoff, spread_tinkoff = get_prices_and_spread_from_tinkoffbank()
-    except Exception as err:
-        print(f'{get_log_head(msg)} [ERROR] Something went wrong in get_prices_and_spread_from_tinkoffbank() \n{err}')
+        usd.get_prices_and_spread_from_tinkoffbank(proxies=None)
+    except Exception as exc:
+        print(f'{get_log_head(msg)} [ERROR] Something went wrong in get_prices_and_spread_from_tinkoffbank() \n{exc}')
         tinkoffbank_response = 'не удалось получить данные 😭'
     else:
-        tinkoffbank_response = f'{price_buy_tinkoff:.2f}/{price_sell_tinkoff:.2f} \u0394{spread_tinkoff:.2f}'
+        tinkoffbank_response = f'{usd.price_buy_tinkoff:.2f}/{usd.price_sell_tinkoff:.2f} Δ{usd.spread_tinkoff:.2f}'
 
     await msg.answer(f'Binance p2p через Tinkoff:\n'
                      f'<code>{binance_p2p_response}</code>\n'
@@ -84,7 +84,7 @@ async def process_details_button(msg: types.Message):
     await msg.answer('Я показываю актуальный\n'
                      'курс покупки $ (USD):\n'
                      '- цену_покупки/цену_продажи\n'
-                     '- и \u0394 разницу между ними\n'
+                     '- и Δ разницу между ними\n'
                      'на <a href="https://p2p.binance.com/ru/trade/all-payments/USDT?fiat=RUB">binance p2p</a> через Tinkoff\n'
                      'в <a href="https://alfabank.ru/currency/">Alfa банке</a>\n'
                      'в <a href="https://www.tinkoff.ru/about/exchange/">Tinkoff банке</a>\n'

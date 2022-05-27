@@ -1,4 +1,8 @@
-import json, requests
+import datetime
+import json
+import requests
+
+from settings import PROXIES
 
 
 class Usd:
@@ -6,15 +10,39 @@ class Usd:
         self.price_buy_binance = None
         self.price_sell_binance = None
         self.spread_binance = None
+        self.price_buy_alfa = None
+        self.price_sell_alfa = None
+        self.spread_alfa = None
+        self.price_buy_tinkoff = None
+        self.price_sell_tinkoff = None
+        self.spread_tinkoff = None
 
     def __str__(self):
-        self.get_prices_and_spread_from_binance_p2p()
+        self.get_prices_and_spread_from_binance_p2p(proxies=None)
         print(f'Binance p2p через Tinkoff:\n'
               f'покупка/продажа \u0394 разница\n'
               f'{self.price_buy_binance:.2f}/{self.price_sell_binance:.2f} \u0394{self.spread_binance:.2f}')
+
+        self.get_prices_and_spread_from_alfabank(proxies=PROXIES)
+        print(f'Alfa-bank:\n'
+              f'покупка/продажа \u0394 разница\n'
+              f'{self.price_buy_alfa:.2f}/{self.price_sell_alfa:.2f} \u0394{self.spread_alfa:.2f}')
+
+        self.get_prices_and_spread_from_tinkoffbank(proxies=None)
+        print(f'Tinkoff-bank\n'
+              f'покупка/продажа \u0394 разница\n'
+              f'{self.price_buy_tinkoff:.2f}/{self.price_sell_tinkoff:.2f} \u0394{self.spread_tinkoff:.2f}')
+
         return '\n'
 
-    def get_prices_and_spread_from_binance_p2p(self, timeout=15):
+    def get_prices_and_spread_from_binance_p2p(self, timeout=15, proxies: dict = None):
+        """
+        Получить цену покупки, цену продажи и разницу между ними с binance_p2p
+        для ручного просмотра зайти на
+        https://p2p.binance.com/ru/trade/all-payments/USDT?fiat=RUB
+        и выбрать способ оплаты 'Тинькофф'
+        """
+
         url = 'https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search'
 
         headers = {
@@ -48,24 +76,85 @@ class Usd:
             'x-ui-request-trace': '69909413-e83c-44e0-a38d-cf2e7fef4a1f'
         }
 
-        request_payload_buy = {"page": 1, "rows": 10, "payTypes": ["Tinkoff"], "asset": "USDT", "tradeType": "BUY",
-                               "fiat": "RUB", "publisherType": None}
-        response = requests.post(url=url, headers=headers, json=request_payload_buy, timeout=timeout)
-        # print(f'Status_code_is {response.status_code}')
-        data_dict = json.loads(response.text)
-        self.price_buy_binance = float(data_dict.get('data')[0].get('adv').get('price'))
+        payload_buy = {"page": 1, "rows": 10, "payTypes": ["Tinkoff"], "asset": "USDT", "tradeType": "BUY",
+                       "fiat": "RUB", "publisherType": None}
+        response_buy = requests.post(url=url, headers=headers, json=payload_buy, timeout=timeout, proxies=proxies)
+        response_buy_dict = json.loads(response_buy.text)
+        self.price_buy_binance = float(response_buy_dict.get('data')[0].get('adv').get('price'))
 
-        request_payload_sell = {"page": 1, "rows": 10, "payTypes": ["Tinkoff"], "asset": "USDT", "tradeType": "SELL",
-                                "fiat": "RUB", "publisherType": None}
-        response = requests.post(url=url, headers=headers, json=request_payload_sell, timeout=timeout)
-        # print(f'Status_code_is {response.status_code}')
-        data_dict = json.loads(response.text)
-        self.price_sell_binance = float(data_dict.get('data')[0].get('adv').get('price'))
+        payload_sell = {"page": 1, "rows": 10, "payTypes": ["Tinkoff"], "asset": "USDT", "tradeType": "SELL",
+                        "fiat": "RUB", "publisherType": None}
+        response_sell = requests.post(url=url, headers=headers, json=payload_sell, timeout=timeout, proxies=proxies)
+        response_sell_dict = json.loads(response_sell.text)
+        self.price_sell_binance = float(response_sell_dict.get('data')[0].get('adv').get('price'))
 
-        self.spread_binance = round(self.price_buy_binance - self.price_sell_binance, 2)
+        self.spread_binance = self.price_buy_binance - self.price_sell_binance
+        self.spread_binance = round(self.spread_binance, 2)
+
+    def get_prices_and_spread_from_alfabank(self, timeout=15, proxies: dict = None):
+        """
+        Получить цену покупки, цену продажи и разницу между ними из Альфа банка
+        для ручного просмотра зайти на https://alfabank.ru/currency/
+        """
+        now = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+        url = f'https://alfabank.ru/api/v1/scrooge/currencies/alfa-rates?currencyCode.in=USD,EUR,CHF,GBP&rateType.eq=makeCash&lastActualForDate.eq=true&clientType.eq=standardCC&date.lte={now}%2B03:00'
+
+        headers = {
+            'Accept': 'application/json, text/plain, */*',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Connection': 'keep-alive',
+            'Host': 'alfabank.ru',
+            'Referer': 'https://alfabank.ru/currency/',
+            'Sec-Fetch-Dest': 'empty',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'same-origin',
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.4 Safari/605.1.15'
+        }
+
+        response = requests.get(url=url, headers=headers, timeout=timeout, proxies=proxies)
+
+        response_dict = json.loads(response.text)
+
+        self.price_buy_alfa = float(response_dict.get('data')[3].get('rateByClientType')[0].get('ratesByType')[0]
+                                    .get('lastActualRate').get('sell').get('originalValue'))
+        self.price_sell_alfa = float(response_dict.get('data')[3].get('rateByClientType')[0].get('ratesByType')[0]
+                                     .get('lastActualRate').get('buy').get('originalValue'))
+
+        self.spread_alfa = self.price_buy_alfa - self.price_sell_alfa
+        self.spread_alfa = round(self.spread_alfa, 2)
+
+    def get_prices_and_spread_from_tinkoffbank(self, timeout=15, proxies: dict = None):
+        """
+        Получить цену покупки, цену продажи и разницу между ними из Тинькофф банка
+        для ручного просмотра зайти на https://www.tinkoff.ru/about/exchange/
+        """
+
+        url = 'https://api.tinkoff.ru/v1/currency_rates?from=USD&to=RUB'
+
+        headers = {
+            'authority': 'api.tinkoff.ru',
+            'method': 'GET',
+            'path': '/v1/currency_rates?from=USD&to=RUB',
+            'scheme': 'https',
+            'accept': '*/*',
+            'accept-encoding': 'gzip, deflate, br',
+            'accept-language': 'en-US,en;q=0.9',
+            'content-type': 'application/x-www-form-urlencoded',
+            'origin': 'https://www.tinkoff.ru',
+            'referer': 'https://www.tinkoff.ru/',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36 OPR/84.0.4316.42'
+        }
+
+        response = requests.get(url=url, headers=headers, timeout=timeout, proxies=proxies)
+        response_dict = json.loads(response.text)
+
+        self.price_buy_tinkoff = float(response_dict.get('payload').get('rates')[2].get('sell'))
+        self.price_sell_tinkoff = float(response_dict.get('payload').get('rates')[2].get('buy'))
+
+        self.spread_tinkoff = self.price_buy_tinkoff - self.price_sell_tinkoff
+        self.spread_tinkoff = round(self.spread_tinkoff, 2)
 
 
 if __name__ == '__main__':
     usd = Usd()
     print(usd)
-

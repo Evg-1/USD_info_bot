@@ -10,6 +10,11 @@ venv.bak/
 # Pycharm
 .idea/
 
+# USD_info_bot
+probe.py
+*.log
+
+# OTHER:
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
