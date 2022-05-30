@@ -16,7 +16,7 @@ class Usd:
         self.price_buy_tinkoff = None
         self.price_sell_tinkoff = None
         self.spread_tinkoff = None
-        self.bot_reply_with_prices = None
+        self.bot_prices_info_reply = None
 
     def get_prices_and_spread_from_binance_p2p(self, timeout=15, proxies: dict = None):
         """
@@ -137,7 +137,7 @@ class Usd:
         self.spread_tinkoff = self.price_buy_tinkoff - self.price_sell_tinkoff
         self.spread_tinkoff = round(self.spread_tinkoff, 2)
 
-    def get_bot_reply_with_prices(self):
+    def get_bot_prices_info_reply(self):
         try:
             self.get_prices_and_spread_from_binance_p2p(proxies=None)
         except Exception as exc:
@@ -162,7 +162,7 @@ class Usd:
         else:
             tinkoffbank_response = f'{self.price_buy_tinkoff:.2f}/{self.price_sell_tinkoff:.2f} Δ{self.spread_tinkoff:.2f}'
 
-        self.bot_reply_with_prices = str(f'Binance p2p через Tinkoff:\n'
+        self.bot_prices_info_reply = str(f'Binance p2p через Tinkoff:\n'
                                          f'<code>{binance_p2p_response}</code>\n'
                                          f'Alfa-bank:\n'
                                          f'<code>{alfabank_response}</code>\n'
@@ -172,5 +172,5 @@ class Usd:
 
 if __name__ == '__main__':
     usd = Usd()
-    usd.get_bot_reply_with_prices()
-    print(usd.bot_reply_with_prices.replace('<code>', '').replace('</code>', ''))
+    usd.get_bot_prices_info_reply()
+    print(usd.bot_prices_info_reply.replace('<code>', '').replace('</code>', ''))

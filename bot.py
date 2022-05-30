@@ -6,7 +6,7 @@ from aiogram.utils import executor
 
 import datetime
 from business_logic import Usd
-from prepared_messages import *
+from prepared_bot_replies import *
 from settings import TELEGRAM_BOT_TOKEN
 
 bot = Bot(token=TELEGRAM_BOT_TOKEN)
@@ -28,7 +28,7 @@ async def process_start_command(msg: types.Message):
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
     buttons = ['показать курс', 'подробности']
     keyboard.add(*buttons)
-    await msg.answer(start_msg, reply_markup=keyboard, parse_mode=types.ParseMode.HTML, disable_web_page_preview=True)
+    await msg.answer(bot_start_reply, reply_markup=keyboard, parse_mode=types.ParseMode.HTML, disable_web_page_preview=True)
 
 
 @dp.message_handler(lambda message: message.text == "показать курс")
@@ -36,15 +36,15 @@ async def process_exchange_rate_button(msg: types.Message):
     print(f'{get_log_head(msg)} нажал кнопку "показать курс"')
 
     usd = Usd()
-    usd.get_bot_reply_with_prices()
-    await msg.answer(usd.bot_reply_with_prices, parse_mode=types.ParseMode.HTML)
+    usd.get_bot_prices_info_reply()
+    await msg.answer(usd.bot_prices_info_reply, parse_mode=types.ParseMode.HTML)
 
 
 @dp.message_handler(lambda message: message.text == 'подробности')
 async def process_details_button(msg: types.Message):
     print(f'{get_log_head(msg)} нажал кнопку "подробности"')
 
-    await msg.answer(details_msg, parse_mode=types.ParseMode.HTML, disable_web_page_preview=True)
+    await msg.answer(bot_details_reply, parse_mode=types.ParseMode.HTML, disable_web_page_preview=True)
 
 
 @dp.message_handler()
@@ -54,8 +54,7 @@ async def process_any_message(msg: types.Message):
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
     buttons = ['показать курс', 'подробности']
     keyboard.add(*buttons)
-    await bot.send_message(msg.from_user.id, 'Сложна... сложна... непанятна...\nПожалуйста, используй кнопки',
-                           reply_markup=keyboard)
+    await bot.send_message(msg.from_user.id, bot_use_buttons_reply, reply_markup=keyboard)
 
 
 if __name__ == '__main__':
