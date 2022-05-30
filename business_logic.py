@@ -16,24 +16,7 @@ class Usd:
         self.price_buy_tinkoff = None
         self.price_sell_tinkoff = None
         self.spread_tinkoff = None
-
-    def __str__(self):
-        self.get_prices_and_spread_from_binance_p2p(proxies=None)
-        print(f'Binance p2p через Tinkoff:\n'
-              f'покупка/продажа \u0394 разница\n'
-              f'{self.price_buy_binance:.2f}/{self.price_sell_binance:.2f} \u0394{self.spread_binance:.2f}')
-
-        self.get_prices_and_spread_from_alfabank(proxies=PROXIES)
-        print(f'Alfa-bank:\n'
-              f'покупка/продажа \u0394 разница\n'
-              f'{self.price_buy_alfa:.2f}/{self.price_sell_alfa:.2f} \u0394{self.spread_alfa:.2f}')
-
-        self.get_prices_and_spread_from_tinkoffbank(proxies=None)
-        print(f'Tinkoff-bank\n'
-              f'покупка/продажа \u0394 разница\n'
-              f'{self.price_buy_tinkoff:.2f}/{self.price_sell_tinkoff:.2f} \u0394{self.spread_tinkoff:.2f}')
-
-        return '\n'
+        self.bot_reply_with_prices = None
 
     def get_prices_and_spread_from_binance_p2p(self, timeout=15, proxies: dict = None):
         """
@@ -154,7 +137,40 @@ class Usd:
         self.spread_tinkoff = self.price_buy_tinkoff - self.price_sell_tinkoff
         self.spread_tinkoff = round(self.spread_tinkoff, 2)
 
+    def get_bot_reply_with_prices(self):
+        try:
+            self.get_prices_and_spread_from_binance_p2p(proxies=None)
+        except Exception as exc:
+            print(f'[ERROR] Something went wrong in get_prices_and_spread_from_binance_p2p() \n{exc}')
+            binance_p2p_response = 'не удалось получить данные 😭'
+        else:
+            binance_p2p_response = f'{self.price_buy_binance:.2f}/{self.price_sell_binance:.2f} Δ{self.spread_binance:.2f}'
+
+        try:
+            self.get_prices_and_spread_from_alfabank(proxies=PROXIES)
+        except Exception as exc:
+            print(f'[ERROR] Something went wrong in get_prices_and_spread_from_alfabank() \n{exc}')
+            alfabank_response = 'не удалось получить данные 😭'
+        else:
+            alfabank_response = f'{self.price_buy_alfa:.2f}/{self.price_sell_alfa:.2f} Δ{self.spread_alfa:.2f}'
+
+        try:
+            self.get_prices_and_spread_from_tinkoffbank(proxies=None)
+        except Exception as exc:
+            print(f'[ERROR] Something went wrong in get_prices_and_spread_from_tinkoffbank() \n{exc}')
+            tinkoffbank_response = 'не удалось получить данные 😭'
+        else:
+            tinkoffbank_response = f'{self.price_buy_tinkoff:.2f}/{self.price_sell_tinkoff:.2f} Δ{self.spread_tinkoff:.2f}'
+
+        self.bot_reply_with_prices = str(f'Binance p2p через Tinkoff:\n'
+                                         f'<code>{binance_p2p_response}</code>\n'
+                                         f'Alfa-bank:\n'
+                                         f'<code>{alfabank_response}</code>\n'
+                                         f'Tinkoff-bank\n'
+                                         f'<code>{tinkoffbank_response}</code>')
+
 
 if __name__ == '__main__':
     usd = Usd()
-    print(usd)
+    usd.get_bot_reply_with_prices()
+    print(usd.bot_reply_with_prices.replace('<code>', '').replace('</code>', ''))
