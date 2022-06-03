@@ -1,10 +1,8 @@
-# id 238440394
+import datetime
 
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
-
-import datetime
 from business_logic import Usd
 from prepared_bot_replies import *
 from settings import TELEGRAM_BOT_TOKEN

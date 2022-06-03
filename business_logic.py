@@ -1,8 +1,21 @@
 import datetime
 import json
+import time
+
 import requests
 
 from settings import PROXIES
+
+
+def time_track(func):
+    def wrapper(*args, **kwargs):
+        start_time = time.perf_counter()
+        res = func(*args, **kwargs)
+        end_time = time.perf_counter()
+        print(f'функция "{func.__name__}" выполнялась {end_time - start_time:.2f} сек')
+        return res
+
+    return wrapper
 
 
 class Usd:
@@ -137,6 +150,7 @@ class Usd:
         self.spread_tinkoff = self.price_buy_tinkoff - self.price_sell_tinkoff
         self.spread_tinkoff = round(self.spread_tinkoff, 2)
 
+    @time_track
     def get_bot_prices_info_reply(self):
         try:
             self.get_prices_and_spread_from_binance_p2p(proxies=None)
