@@ -1,6 +1,7 @@
 import datetime
 import json
 import time
+from threading import Thread
 
 import requests
 
@@ -30,6 +31,9 @@ class Usd:
         self.price_sell_tinkoff = None
         self.spread_tinkoff = None
         self.bot_prices_info_reply = None
+        self.binance_p2p_f_msg = None
+        self.alfabank_p2p_f_msg = None
+        self.tinkoffbank_p2p_f_msg = None
 
     def get_prices_and_spread_from_binance_p2p(self, timeout=15, proxies: dict = None):
         """
@@ -150,38 +154,48 @@ class Usd:
         self.spread_tinkoff = self.price_buy_tinkoff - self.price_sell_tinkoff
         self.spread_tinkoff = round(self.spread_tinkoff, 2)
 
-    @time_track
-    def get_bot_prices_info_reply(self):
+    def get_formatted_msg_from_binance_p2p(self):
         try:
             self.get_prices_and_spread_from_binance_p2p(proxies=None)
         except Exception as exc:
             print(f'[ERROR] Something went wrong in get_prices_and_spread_from_binance_p2p() \n{exc}')
-            binance_p2p_response = 'не удалось получить данные 😭'
+            self.binance_p2p_f_msg = 'не удалось получить данные 😭'
         else:
-            binance_p2p_response = f'{self.price_buy_binance:.2f}/{self.price_sell_binance:.2f} Δ{self.spread_binance:.2f}'
+            self.binance_p2p_f_msg = f'{self.price_buy_binance:.2f}/{self.price_sell_binance:.2f} Δ{self.spread_binance:.2f}'
 
+    def get_formatted_msg_from_alfabank(self):
         try:
             self.get_prices_and_spread_from_alfabank(proxies=PROXIES)
         except Exception as exc:
             print(f'[ERROR] Something went wrong in get_prices_and_spread_from_alfabank() \n{exc}')
-            alfabank_response = 'не удалось получить данные 😭'
+            self.alfabank_p2p_f_msg = 'не удалось получить данные 😭'
         else:
-            alfabank_response = f'{self.price_buy_alfa:.2f}/{self.price_sell_alfa:.2f} Δ{self.spread_alfa:.2f}'
+            self.alfabank_p2p_f_msg = f'{self.price_buy_alfa:.2f}/{self.price_sell_alfa:.2f} Δ{self.spread_alfa:.2f}'
 
+    def get_formatted_msg_from_tinkoffbank(self):
         try:
             self.get_prices_and_spread_from_tinkoffbank(proxies=None)
         except Exception as exc:
             print(f'[ERROR] Something went wrong in get_prices_and_spread_from_tinkoffbank() \n{exc}')
-            tinkoffbank_response = 'не удалось получить данные 😭'
+            self.tinkoffbank_p2p_f_msg = 'не удалось получить данные 😭'
         else:
-            tinkoffbank_response = f'{self.price_buy_tinkoff:.2f}/{self.price_sell_tinkoff:.2f} Δ{self.spread_tinkoff:.2f}'
+            self.tinkoffbank_p2p_f_msg = f'{self.price_buy_tinkoff:.2f}/{self.price_sell_tinkoff:.2f} Δ{self.spread_tinkoff:.2f}'
+
+    def get_bot_prices_info_reply(self):
+        funcs = [self.get_formatted_msg_from_binance_p2p,
+                 self.get_formatted_msg_from_alfabank,
+                 self.get_formatted_msg_from_tinkoffbank]
+
+        threads = [Thread(target=func) for func in funcs]
+        _ = [thread.start() for thread in threads]
+        _ = [thread.join() for thread in threads]
 
         self.bot_prices_info_reply = str(f'Binance p2p через Tinkoff:\n'
-                                         f'<code>{binance_p2p_response}</code>\n'
+                                         f'<code>{self.binance_p2p_f_msg}</code>\n'
                                          f'Alfa-bank:\n'
-                                         f'<code>{alfabank_response}</code>\n'
+                                         f'<code>{self.alfabank_p2p_f_msg}</code>\n'
                                          f'Tinkoff-bank\n'
-                                         f'<code>{tinkoffbank_response}</code>')
+                                         f'<code>{self.tinkoffbank_p2p_f_msg}</code>')
 
 
 if __name__ == '__main__':
