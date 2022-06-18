@@ -187,8 +187,8 @@ class Usd:
                  self.get_formatted_msg_from_tinkoffbank]
 
         threads = [Thread(target=func) for func in funcs]
-        _ = [thread.start() for thread in threads]
-        _ = [thread.join() for thread in threads]
+        [thread.start() for thread in threads]
+        [thread.join() for thread in threads]
 
         self.bot_prices_info_reply = str(f'Binance p2p через Tinkoff:\n'
                                          f'<code>{self.binance_p2p_f_msg}</code>\n'
