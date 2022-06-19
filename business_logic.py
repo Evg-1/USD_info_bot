@@ -19,13 +19,6 @@ def time_track(func):
     return wrapper
 
 
-def get_data(url: str, headers: dict, payload: dict = None, timeout: int = 15, proxies: dict = PROXIES):
-    if payload is None:
-        return requests.get(url=url, headers=headers, timeout=timeout, proxies=proxies)
-    else:
-        return requests.post(url=url, headers=headers, timeout=timeout, proxies=proxies, json=payload)
-
-
 class Usd:
     def __init__(self):
         self.price_buy_binance = None
@@ -41,6 +34,20 @@ class Usd:
         self.binance_p2p_f_msg = None
         self.alfabank_p2p_f_msg = None
         self.tinkoffbank_p2p_f_msg = None
+
+    @staticmethod
+    def get_data(url: str, headers: dict, payload: dict = None, timeout: int = 15, proxies: dict = PROXIES):
+        if payload is None:
+            return requests.get(url=url, headers=headers, timeout=timeout, proxies=proxies)
+        else:
+            return requests.post(url=url, headers=headers, timeout=timeout, proxies=proxies, json=payload)
+
+    @staticmethod
+    def calc_spread(price_buy: (int, float), price_sell: (int, float)) -> float:
+        """
+        Вычисляем spread - разницу между ценой_покупки и ценой_продажи
+        """
+        return float(round(price_buy - price_sell, 2))
 
     def get_prices_and_spread_from_binance_p2p(self):
         """
@@ -85,18 +92,17 @@ class Usd:
 
         payload_buy = {"page": 1, "rows": 10, "payTypes": ["Tinkoff"], "asset": "USDT", "tradeType": "BUY",
                        "fiat": "RUB", "publisherType": None}
-        response_buy = get_data(url=url, headers=headers, payload=payload_buy)
+        response_buy = self.get_data(url=url, headers=headers, payload=payload_buy)
         response_buy_dict = json.loads(response_buy.text)
         self.price_buy_binance = float(response_buy_dict.get('data')[0].get('adv').get('price'))
 
         payload_sell = {"page": 1, "rows": 10, "payTypes": ["Tinkoff"], "asset": "USDT", "tradeType": "SELL",
                         "fiat": "RUB", "publisherType": None}
-        response_sell = get_data(url=url, headers=headers, payload=payload_sell)
+        response_sell = self.get_data(url=url, headers=headers, payload=payload_sell)
         response_sell_dict = json.loads(response_sell.text)
         self.price_sell_binance = float(response_sell_dict.get('data')[0].get('adv').get('price'))
 
-        self.spread_binance = self.price_buy_binance - self.price_sell_binance
-        self.spread_binance = round(self.spread_binance, 2)
+        self.spread_binance = self.calc_spread(self.price_buy_binance, self.price_sell_binance)
 
     def get_prices_and_spread_from_alfabank(self):
         """
@@ -118,7 +124,7 @@ class Usd:
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.4 Safari/605.1.15'
         }
 
-        response = get_data(url=url, headers=headers)
+        response = self.get_data(url=url, headers=headers)
 
         response_dict = json.loads(response.text)
 
@@ -127,8 +133,7 @@ class Usd:
         self.price_sell_alfa = float(response_dict.get('data')[3].get('rateByClientType')[0].get('ratesByType')[0]
                                      .get('lastActualRate').get('buy').get('originalValue'))
 
-        self.spread_alfa = self.price_buy_alfa - self.price_sell_alfa
-        self.spread_alfa = round(self.spread_alfa, 2)
+        self.spread_alfa = self.calc_spread(self.price_buy_alfa, self.price_sell_alfa)
 
     def get_prices_and_spread_from_tinkoffbank(self):
         """
@@ -152,14 +157,13 @@ class Usd:
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36 OPR/84.0.4316.42'
         }
 
-        response = get_data(url=url, headers=headers)
+        response = self.get_data(url=url, headers=headers)
         response_dict = json.loads(response.text)
 
         self.price_buy_tinkoff = float(response_dict.get('payload').get('rates')[2].get('sell'))
         self.price_sell_tinkoff = float(response_dict.get('payload').get('rates')[2].get('buy'))
 
-        self.spread_tinkoff = self.price_buy_tinkoff - self.price_sell_tinkoff
-        self.spread_tinkoff = round(self.spread_tinkoff, 2)
+        self.spread_tinkoff = self.calc_spread(self.price_buy_tinkoff, self.price_sell_tinkoff)
 
     def get_formatted_msg_from_binance_p2p(self):
         try:
