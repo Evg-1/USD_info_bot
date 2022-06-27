@@ -51,15 +51,15 @@ class UsdMockTest(unittest.TestCase):
 
     def test_get_formatted_msg_from_binance_p2p(self):
         self.usd.get_formatted_msg_from_binance_p2p()
-        self.assertRegex(self.usd.binance_p2p_f_msg, r'\d+\.\d\d/\d+\.\d\d Δ-?\d+\.\d\d')
+        self.assertRegex(self.usd.binance_f_msg, r'\d+\.\d\d/\d+\.\d\d Δ-?\d+\.\d\d')
 
     def test_get_formatted_msg_from_alfabank(self):
         self.usd.get_formatted_msg_from_alfabank()
-        self.assertRegex(self.usd.alfabank_p2p_f_msg, r'\d+\.\d\d/\d+\.\d\d Δ-?\d+\.\d\d')
+        self.assertRegex(self.usd.alfabank_f_msg, r'\d+\.\d\d/\d+\.\d\d Δ-?\d+\.\d\d')
 
     def test_get_formatted_msg_from_tinkoffbank(self):
         self.usd.get_formatted_msg_from_tinkoffbank()
-        self.assertRegex(self.usd.tinkoffbank_p2p_f_msg, r'\d+\.\d\d/\d+\.\d\d Δ-?\d+\.\d\d')
+        self.assertRegex(self.usd.tinkoffbank_f_msg, r'\d+\.\d\d/\d+\.\d\d Δ-?\d+\.\d\d')
 
 
 class UsdRealTest(unittest.TestCase):
@@ -87,12 +87,12 @@ class UsdRealTest(unittest.TestCase):
 
     def test_get_formatted_msg_from_binance_p2p(self):
         self.usd.get_formatted_msg_from_binance_p2p()
-        self.assertRegex(self.usd.binance_p2p_f_msg, r'\d+\.\d\d/\d+\.\d\d Δ-?\d+\.\d\d')
+        self.assertRegex(self.usd.binance_f_msg, r'\d+\.\d\d/\d+\.\d\d Δ-?\d+\.\d\d')
 
     def test_get_formatted_msg_from_alfabank(self):
         self.usd.get_formatted_msg_from_alfabank()
-        self.assertRegex(self.usd.alfabank_p2p_f_msg, r'\d+\.\d\d/\d+\.\d\d Δ-?\d+\.\d\d')
+        self.assertRegex(self.usd.alfabank_f_msg, r'\d+\.\d\d/\d+\.\d\d Δ-?\d+\.\d\d')
 
     def test_get_formatted_msg_from_tinkoffbank(self):
         self.usd.get_formatted_msg_from_tinkoffbank()
-        self.assertRegex(self.usd.tinkoffbank_p2p_f_msg, r'\d+\.\d\d/\d+\.\d\d Δ-?\d+\.\d\d')
+        self.assertRegex(self.usd.tinkoffbank_f_msg, r'\d+\.\d\d/\d+\.\d\d Δ-?\d+\.\d\d')
