@@ -1,11 +1,6 @@
-import os
-
-os.chdir(os.path.join(os.path.dirname(__file__),
-                      os.path.pardir))  # поднимаемся на 1 директорию выше, чтобы дотянуться до .env
-
 import unittest
 from unittest.mock import Mock
-from business_logic import Usd
+from business_logic.usd import Usd
 
 
 class UsdMockTest(unittest.TestCase):

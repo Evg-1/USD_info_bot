@@ -1,8 +1,8 @@
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
-from business_logic import Usd
-from prepared_bot_replies import *
+from business_logic.usd import Usd
+from business_logic.prepared_bot_replies import bot_start_reply, bot_details_reply, bot_use_buttons_reply
 from utils.cfg_logging import log
 from settings import TELEGRAM_BOT_TOKEN
 

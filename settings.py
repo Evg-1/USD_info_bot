@@ -2,8 +2,9 @@ import os
 
 from environs import Env
 
-if not os.path.exists('.env'):
-    raise FileNotFoundError(f'В каталоге {os.getcwd()} Не найден файл ".env" В нем хранятся адреса, пароли, явки...')
+dot_env_path = os.path.abspath(os.path.join(__file__, os.pardir, '.env'))
+if not os.path.exists(dot_env_path):
+    raise FileNotFoundError(f'Не найден файл {dot_env_path} В нем хранятся адреса, пароли, явки...')
 
 env = Env()
 env.read_env()  # read .env file
