@@ -3,6 +3,8 @@ import json
 from threading import Thread
 
 import requests
+from requests.adapters import HTTPAdapter, Retry
+
 from utils.cfg_logging import log
 from settings import PROXIES
 
@@ -25,10 +27,16 @@ class Usd:
 
     @staticmethod
     def get_data(url: str, headers: dict, payload: dict = None, timeout: int = 15, proxies: dict = PROXIES):
-        if payload is None:
-            return requests.get(url=url, headers=headers, timeout=timeout, proxies=proxies)
-        else:
-            return requests.post(url=url, headers=headers, timeout=timeout, proxies=proxies, json=payload)
+        if payload is None:  # используем метод GET
+            session = requests.Session()
+            retry_strategy = Retry(total=7, backoff_factor=0.2)
+            session.mount('https://', HTTPAdapter(max_retries=retry_strategy))
+            return session.get(url=url, headers=headers, timeout=timeout, proxies=proxies)
+        else:  # используем метод POST
+            session = requests.Session()
+            retry_strategy = Retry(total=7, backoff_factor=0.2)
+            session.mount('https://', HTTPAdapter(max_retries=retry_strategy))
+            return session.post(url=url, headers=headers, timeout=timeout, proxies=proxies, json=payload)
 
     @staticmethod
     def calc_spread(price_buy: (int, float), price_sell: (int, float)) -> float:

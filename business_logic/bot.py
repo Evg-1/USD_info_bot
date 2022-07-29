@@ -36,7 +36,9 @@ async def process_start_command(msg: types.Message):
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
     buttons = ['показать курс', 'подробности']
     keyboard.add(*buttons)
-    await msg.answer(bot_start_reply, reply_markup=keyboard, parse_mode=types.ParseMode.HTML,
+    await msg.answer(bot_start_reply,
+                     reply_markup=keyboard,
+                     parse_mode=types.ParseMode.HTML,
                      disable_web_page_preview=True)
 
 
