@@ -13,7 +13,7 @@ bot_details_reply = """Я показываю актуальный
 курс покупки $ (USD):
  - цену_покупки/цену_продажи
  - и Δ разницу между ними
-на <a href="https://p2p.binance.com/ru/trade/all-payments/USDT?fiat=RUB">binance p2p</a> через Tinkoff
+на <a href="https://p2p.binance.com/ru/trade/all-payments/USDT?fiat=RUB">binance p2p</a> (USDT) через Tinkoff
 в <a href="https://alfabank.ru/currency/">Alfa банке</a>
 в <a href="https://www.tinkoff.ru/about/exchange/">Tinkoff банке</a>
 

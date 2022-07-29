@@ -13,6 +13,7 @@ venv.bak/
 # USD_info_bot
 probe.py
 *.log
+*.sqlite
 
 # OTHER:
 # Byte-compiled / optimized / DLL files

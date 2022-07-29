@@ -1,3 +1,4 @@
 aiogram==2.19
 requests==2.27.1
 environs==9.5.0
+peewee==3.15.0

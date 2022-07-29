@@ -189,7 +189,7 @@ class Usd:
         [thread.start() for thread in threads]
         [thread.join() for thread in threads]
 
-        self.bot_prices_info_reply = str(f'Binance p2p через Tinkoff:\n'
+        self.bot_prices_info_reply = str(f'Binance p2p:\n'
                                          f'<code>{self.binance_f_msg}</code>\n'
                                          f'Alfa-bank:\n'
                                          f'<code>{self.alfabank_f_msg}</code>\n'
