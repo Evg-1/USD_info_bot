@@ -86,13 +86,13 @@ class Usd:
             'x-ui-request-trace': '69909413-e83c-44e0-a38d-cf2e7fef4a1f'
         }
 
-        payload_buy = {"page": 1, "rows": 10, "payTypes": ["Tinkoff"], "asset": "USDT", "tradeType": "BUY",
+        payload_buy = {"page": 1, "rows": 10, "payTypes": ["TinkoffNew"], "asset": "USDT", "tradeType": "BUY",
                        "fiat": "RUB", "publisherType": None}
         response_buy = self.get_data(url=url, headers=headers, payload=payload_buy)
         response_buy_dict = json.loads(response_buy.text)
         self.price_buy_binance = float(response_buy_dict.get('data')[0].get('adv').get('price'))
 
-        payload_sell = {"page": 1, "rows": 10, "payTypes": ["Tinkoff"], "asset": "USDT", "tradeType": "SELL",
+        payload_sell = {"page": 1, "rows": 10, "payTypes": ["TinkoffNew"], "asset": "USDT", "tradeType": "SELL",
                         "fiat": "RUB", "publisherType": None}
         response_sell = self.get_data(url=url, headers=headers, payload=payload_sell)
         response_sell_dict = json.loads(response_sell.text)
