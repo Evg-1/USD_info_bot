@@ -6,7 +6,12 @@ import requests
 from requests.adapters import HTTPAdapter, Retry
 
 from utils.cfg_logging import log
-from settings import PROXIES
+from settings import USE_PROXY
+
+if USE_PROXY is True:
+    from settings import PROXIES
+else:
+    PROXIES = None
 
 
 class Usd:
@@ -209,3 +214,8 @@ if __name__ == '__main__':
     usd = Usd()
     usd.get_bot_prices_info_reply()
     print(usd.bot_prices_info_reply.replace('<code>', '').replace('</code>', ''))
+#
+# if __name__ == '__main__':
+#     usd = Usd()
+#     usd.get_formatted_msg_from_binance_p2p()
+#     print(usd.binance_f_msg)

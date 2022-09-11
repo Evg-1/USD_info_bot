@@ -10,4 +10,5 @@ env = Env()
 env.read_env()  # read .env file
 
 TELEGRAM_BOT_TOKEN = env.str('TELEGRAM_BOT_TOKEN')
+USE_PROXY = env.bool("USE_PROXY", False)
 PROXIES = env.dict('PROXIES', subcast_values=str)
