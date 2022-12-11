@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timedelta
 import json
 from threading import Thread
 
@@ -10,6 +10,8 @@ from settings import USE_PROXY
 
 if USE_PROXY is True:
     from settings import PROXIES
+
+    log.info('proxy используется')
 else:
     PROXIES = None
 
@@ -31,15 +33,15 @@ class Usd:
         self.tinkoffbank_f_msg = None
 
     @staticmethod
-    def get_data(url: str, headers: dict, payload: dict = None, timeout: int = 15, proxies: dict = PROXIES):
+    def get_data(url: str, headers: dict, payload: dict = None, timeout: int = 5, proxies: dict = PROXIES):
         if payload is None:  # используем метод GET
             session = requests.Session()
-            retry_strategy = Retry(total=7, backoff_factor=0.2)
+            retry_strategy = Retry(total=3, backoff_factor=1)
             session.mount('https://', HTTPAdapter(max_retries=retry_strategy))
             return session.get(url=url, headers=headers, timeout=timeout, proxies=proxies)
         else:  # используем метод POST
             session = requests.Session()
-            retry_strategy = Retry(total=7, backoff_factor=0.2)
+            retry_strategy = Retry(total=3, backoff_factor=1)
             session.mount('https://', HTTPAdapter(max_retries=retry_strategy))
             return session.post(url=url, headers=headers, timeout=timeout, proxies=proxies, json=payload)
 
@@ -110,19 +112,12 @@ class Usd:
         Получить цену покупки, цену продажи и разницу между ними из Альфа банка
         для ручного просмотра зайти на https://alfabank.ru/currency/
         """
-        now = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+        now = datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
         url = f'https://alfabank.ru/api/v1/scrooge/currencies/alfa-rates?currencyCode.in=USD,EUR,CHF,GBP&rateType.eq=makeCash&lastActualForDate.eq=true&clientType.eq=standardCC&date.lte={now}%2B03:00'
 
         headers = {
             'Accept': 'application/json, text/plain, */*',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Connection': 'keep-alive',
-            'Host': 'alfabank.ru',
-            'Referer': 'https://alfabank.ru/currency/',
-            'Sec-Fetch-Dest': 'empty',
-            'Sec-Fetch-Mode': 'cors',
-            'Sec-Fetch-Site': 'same-origin',
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.4 Safari/605.1.15'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36'
         }
 
         response = self.get_data(url=url, headers=headers)
@@ -214,8 +209,3 @@ if __name__ == '__main__':
     usd = Usd()
     usd.get_bot_prices_info_reply()
     print(usd.bot_prices_info_reply.replace('<code>', '').replace('</code>', ''))
-#
-# if __name__ == '__main__':
-#     usd = Usd()
-#     usd.get_formatted_msg_from_binance_p2p()
-#     print(usd.binance_f_msg)
